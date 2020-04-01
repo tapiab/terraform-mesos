@@ -25,7 +25,7 @@ variable "slave_machine_type" {
 }
 
 variable "slave_resources" {
-  type = "string"
+  type = string
   default = ""
   description = "Overrule default resources of the Mesos slaves depending on slave_machine_type, eg cpus(*):0.90; disk(*):7128. TF doesn't update slave resources."
 }

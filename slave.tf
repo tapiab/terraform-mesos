@@ -1,21 +1,24 @@
 resource "google_compute_instance" "mesos-slave" {
-    count = "${var.slaves}"
+    count = var.slaves
     name = "${var.name}-mesos-slave-${count.index}"
-    machine_type = "${var.slave_machine_type}"
-    zone = "${var.zone}"
+    machine_type = var.slave_machine_type
+    zone = var.zone
     tags = ["mesos-slave","http","https","ssh"]
 
-    disk {
-      image = "${var.image}"
-      type = "pd-ssd"
+    boot_disk {
+	initialize_params {
+      		image = var.image
+      		type = "pd-ssd"
+	}
     }
 
-    metadata {
-      mastercount = "${var.masters}"
-      clustername = "${var.name}"
-      domain = "${var.domain}"
-      mesosversion = "${var.mesos_version}"
-      slave_resources = "${var.slave_resources}"
+    metadata = {
+      mastercount = var.masters
+      clustername = var.name
+      domain = var.domain
+      mesosversion = var.mesos_version
+      slave_resources = var.slave_resources
+      ssh-keys = "${var.gce_ssh_user}:${file(var.gce_ssh_private_key_file)}"
     }
 
     service_account {
@@ -23,18 +26,11 @@ resource "google_compute_instance" "mesos-slave" {
     }
 
     network_interface {
-      subnetwork = "${google_compute_subnetwork.mesos-net.name}"
+      subnetwork = google_compute_subnetwork.mesos-net.name
       access_config {
         //Ephemeral IP
       }
     }
-
-    # define default connection for remote provisioners
-  connection {
-    type = "ssh"
-    user = "${var.gce_ssh_user}"
-    private_key = "${file(var.gce_ssh_private_key_file)}"
-  }
 
     # install mesos, haproxy and docker
     provisioner "remote-exec" {
