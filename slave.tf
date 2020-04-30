@@ -34,12 +34,18 @@ resource "google_compute_instance" "mesos-slave" {
 
     # install mesos, haproxy and docker
     provisioner "remote-exec" {
-      scripts = [
-        "${path.module}/scripts/common_install_${var.distribution}.sh",
-        "${path.module}/scripts/mesos_install_${var.distribution}.sh",
-        "${path.module}/scripts/haproxy_install.sh",
-        "${path.module}/scripts/common_config.sh",
-        "${path.module}/scripts/slave_config.sh"
+    	connection {
+      		private_key = file(var.gce_ssh_private_key_file)
+	        user        = var.gce_ssh_user
+	        type        = "ssh"
+		host	    = self.network_interface[0].access_config[0].nat_ip
+    }
+	inline = [
+        	"${path.module}/scripts/common_install_${var.distribution}.sh",
+        	"${path.module}/scripts/mesos_install_${var.distribution}.sh",
+        	"${path.module}/scripts/haproxy_install.sh",
+        	"${path.module}/scripts/common_config.sh",
+        	"${path.module}/scripts/slave_config.sh"
       ]
     }
 }

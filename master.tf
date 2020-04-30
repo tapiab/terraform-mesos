@@ -38,7 +38,14 @@ resource "google_compute_instance" "mesos-master" {
 
     # install mesos, haproxy, docker, openvpn, and configure the node
     provisioner "remote-exec" {
-      scripts = [
+	connection {
+                private_key = file(var.gce_ssh_private_key_file)
+                user        = var.gce_ssh_user
+                type        = "ssh"
+                host        = self.network_interface[0].access_config[0].nat_ip
+    	}
+
+      inline = [
         "${path.module}/scripts/common_install_${var.distribution}.sh",
         "${path.module}/scripts/mesos_install_${var.distribution}.sh",
         "${path.module}/scripts/master_install_${var.distribution}.sh",
